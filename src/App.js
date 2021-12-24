@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { message, Input, Button, Card, Col, Row } from 'antd';
+import { Modal, message, Input, Button, Card, Col, Row } from 'antd';
 import React, { useState, useEffect } from 'react'
 import ReactDom from 'react-dom'
 import webSocket from 'socket.io-client'
@@ -23,7 +23,16 @@ function App() {
   }
 
   const step = (event) => {
-    console.log(event.target)
+    const {who, host, guest, roomname} = room;
+    const index = event.target.name;
+    if(room.end) message.error(`棋局已經結束`);
+    if(room[who] !== username) return message.error(`等待玩家"${room[who]}"下子`);
+    ws.emit('step', {who, index});
+  }
+
+  const restartRoom = () => {
+    if(!room.end) return message.error(`對弈尚未結束`);
+    ws.emit('restart', {username, roomname});
   }
 
   const leaveRoom = () => {
@@ -43,6 +52,20 @@ function App() {
           initWebSocket()
       }
   },[ws])
+
+  useEffect(()=>{
+      if(room.end){
+        if(room[room.end] === username) {
+          Modal.success({
+            content: '恭喜你贏囉！再來一局吧',
+          });
+        } else {
+          Modal.error({
+            content: '雖然輸了﹍但國父也是10次才成功，再接再厲囉',
+          });
+        }
+      }
+  },[room])
 
   const initWebSocket = () => {
     ws.on('create', room => {
@@ -70,12 +93,8 @@ function App() {
       setShowGame(false);
     })
     
-    ws.on('username', data => {
-      message.info(data);
-    })
-    
-    ws.on('username', data => {
-      message.info(data);
+    ws.on('end', room => {
+      setRoom(room);
     })
     
     ws.on('error', data => {
@@ -100,19 +119,19 @@ function App() {
         <Col span={4}>
           <Row gutter={[24, 24]}>
             <Col span={24} >
-              <Button name="0" onClick={step}> </Button>
-              <Button name="1" onClick={step}> </Button>
-              <Button name="2" onClick={step}> </Button>
+              <Button name="0" onClick={step}>{room.step[0] ? room.step[0].who === 'host' ? 'O' : 'X' : '  '}</Button>
+              <Button name="1" onClick={step}>{room.step[1] ? room.step[1].who === 'host' ? 'O' : 'X' : '  '}</Button>
+              <Button name="2" onClick={step}>{room.step[2] ? room.step[2].who === 'host' ? 'O' : 'X' : '  '}</Button>
             </Col>
             <Col span={24} >
-              <Button name="3" onClick={step}> </Button>
-              <Button name="4" onClick={step}> </Button>
-              <Button name="5" onClick={step}> </Button>
+              <Button name="3" onClick={step}>{room.step[3] ? room.step[3].who === 'host' ? 'O' : 'X' : '  '}</Button>
+              <Button name="4" onClick={step}>{room.step[4] ? room.step[4].who === 'host' ? 'O' : 'X' : '  '}</Button>
+              <Button name="5" onClick={step}>{room.step[5] ? room.step[5].who === 'host' ? 'O' : 'X' : '  '}</Button>
             </Col>
             <Col span={24} >
-              <Button name="6" onClick={step}> </Button>
-              <Button name="7" onClick={step}> </Button>
-              <Button name="8" onClick={step}> </Button>
+              <Button name="6" onClick={step}>{room.step[6] ? room.step[6].who === 'host' ? 'O' : 'X' : '  '}</Button>
+              <Button name="7" onClick={step}>{room.step[7] ? room.step[7].who === 'host' ? 'O' : 'X' : '  '}</Button>
+              <Button name="8" onClick={step}>{room.step[8] ? room.step[8].who === 'host' ? 'O' : 'X' : '  '}</Button>
             </Col>
           </Row>
         </Col>
@@ -122,6 +141,7 @@ function App() {
             <Input addonBefore="訪客: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.guest} />
         </Col>
         <Col span={24}>
+            <Button type="primary" onClick={restartRoom}>重新開始</Button>
             <Button type="primary" onClick={leaveRoom}>離開房間</Button>
         </Col>
       </Row>
