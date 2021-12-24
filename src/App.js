@@ -97,7 +97,7 @@ function App() {
     /> : null}
     {showGame ? (
       <Row align="middle">
-        <Col span={24}>{room.count === 1 ? '等待玩家進入' : `等待玩家"${room[room.who]}"下子`}</Col>
+        <Col span={24}>{room.count === 1 ? '等待玩家進入' : `等待${room.who === 'host' ? '房主' : '訪客'}"${room[room.who]}"下子`}</Col>
         <Col span={4}>
           <Row gutter={[24, 24]}>
             <Col span={24} >
