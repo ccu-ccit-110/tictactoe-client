@@ -4,6 +4,7 @@ import { message, Input, Button, Card, Col, Row } from 'antd';
 import React, { useState, useEffect } from 'react'
 import ReactDom from 'react-dom'
 import webSocket from 'socket.io-client'
+import _ from 'lodash';
 
 function App() {
   const [ws,setWs] = useState(null)
@@ -15,6 +16,14 @@ function App() {
 
   const createRoom = () => {
     ws.emit('create', {username, roomname});
+  }
+
+  const joinRoom = () => {
+    ws.emit('join', {username, roomname});
+  }
+
+  const step = (event) => {
+    console.log(event.target)
   }
 
   const leaveRoom = () => {
@@ -41,10 +50,28 @@ function App() {
       setShowHome(false);
       setShowGame(true);
     })
+
+    ws.on('join', room => {
+      setRoom(room);
+      setShowHome(false);
+      setShowGame(true);
+    })
+
+    ws.on('step', room => {
+      setRoom(room);
+    })
+
+    ws.on('restart', room => {
+      setRoom(room);
+    })
     
     ws.on('leave', data => {
       setShowHome(true);
       setShowGame(false);
+    })
+    
+    ws.on('username', data => {
+      message.info(data);
     })
     
     ws.on('username', data => {
@@ -66,28 +93,36 @@ function App() {
       setRoomname={setRoomname} 
       createRoom={createRoom} 
       leaveRoom={leaveRoom}
+      joinRoom={joinRoom}
     /> : null}
     {showGame ? (
-      <Row justify="space-around" align="middle">
-        <Col span={12}>
+      <Row align="middle">
+        <Col span={24}>{room.count === 1 ? '等待玩家進入' : `等待玩家"${room[room.who]}"下子`}</Col>
+        <Col span={4}>
           <Row gutter={[24, 24]}>
-            <Col span={8} />
-            <Col span={8} />
-            <Col span={8} />
-
-            <Col span={8} />
-            <Col span={8} />
-            <Col span={8} />
-
-            <Col span={8} />
-            <Col span={8} />
-            <Col span={8} />
+            <Col span={24} >
+              <Button name="0" onClick={step}> </Button>
+              <Button name="1" onClick={step}> </Button>
+              <Button name="2" onClick={step}> </Button>
+            </Col>
+            <Col span={24} >
+              <Button name="3" onClick={step}> </Button>
+              <Button name="4" onClick={step}> </Button>
+              <Button name="5" onClick={step}> </Button>
+            </Col>
+            <Col span={24} >
+              <Button name="6" onClick={step}> </Button>
+              <Button name="7" onClick={step}> </Button>
+              <Button name="8" onClick={step}> </Button>
+            </Col>
           </Row>
         </Col>
-        <Col span={12}>
+        <Col span={20}>
             <Input addonBefore="房間名稱: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.roomname} />
             <Input addonBefore="房主: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.host} />
             <Input addonBefore="訪客: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.guest} />
+        </Col>
+        <Col span={24}>
             <Button type="primary" onClick={leaveRoom}>離開房間</Button>
         </Col>
       </Row>
@@ -99,7 +134,7 @@ function App() {
 
 export default App;
 
-const Home = ({username, setUsername, roomname, setRoomname, createRoom, leaveRoom}) => {
+const Home = ({username, setUsername, roomname, setRoomname, createRoom, leaveRoom, joinRoom}) => {
   return  (
     <Row align="middle">
       <Col span={24}>
@@ -109,7 +144,6 @@ const Home = ({username, setUsername, roomname, setRoomname, createRoom, leaveRo
               <Input.Group compact>
             <Input addonBefore="玩家名稱"  style={{ width: 'calc(100% - 200px)' }} placeholder="宏宏" value={username} onChange={event => setUsername(event.target.value)} />
             <Input addonBefore="房間名稱"  style={{ width: 'calc(100% - 200px)' }} placeholder="吾疆" value={roomname} onChange={event => setRoomname(event.target.value)} />
-                <Button type="primary">加入房間</Button>
               </Input.Group>
             </Card>
           </Col>
@@ -117,7 +151,7 @@ const Home = ({username, setUsername, roomname, setRoomname, createRoom, leaveRo
         <Row gutter={16}>
           <Col span={8} offset={8}>
               <Button type="primary" onClick={createRoom}>建立房間</Button>
-              <Button type="primary" onClick={leaveRoom}>離開房間</Button>
+              <Button type="primary" onClick={joinRoom}>加入房間</Button>
           </Col>
         </Row>
       </Col>
