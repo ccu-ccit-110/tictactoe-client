@@ -25,7 +25,7 @@ function App() {
   const step = (event) => {
     const {who, host, guest, roomname} = room;
     const index = event.target.name;
-    if(room.end) message.error(`棋局已經結束`);
+    if(room.end) return message.error(`棋局已經結束`);
     if(room[who] !== username) return message.error(`等待玩家"${room[who]}"下子`);
     ws.emit('step', {who, index});
   }
@@ -116,7 +116,7 @@ function App() {
     {showGame ? (
       <Row align="middle">
         <Col span={24}>{room.count === 1 ? '等待玩家進入' : `等待玩家"${room[room.who]}"下子`}</Col>
-        <Col span={4}>
+        <Col span={8}>
           <Row gutter={[24, 24]}>
             <Col span={24} >
               <Button name="0" onClick={step}>{room.step[0] ? room.step[0].who === 'host' ? 'O' : 'X' : '  '}</Button>
@@ -135,7 +135,7 @@ function App() {
             </Col>
           </Row>
         </Col>
-        <Col span={20}>
+        <Col span={16}>
             <Input addonBefore="房間名稱: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.roomname} />
             <Input addonBefore="房主: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.host} />
             <Input addonBefore="訪客: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.guest} />
@@ -157,8 +157,8 @@ const Home = ({username, setUsername, roomname, setRoomname, createRoom, leaveRo
   return  (
     <Row align="middle">
       <Col span={24}>
-        <Row gutter={16}>
-          <Col span={8} offset={8}>
+        <Row>
+          <Col span={24}>
             <Card title="井字棋" bordered={false}>
               <Input.Group compact>
             <Input addonBefore="玩家名稱"  style={{ width: 'calc(100% - 200px)' }} placeholder="宏宏" value={username} onChange={event => setUsername(event.target.value)} />
@@ -167,8 +167,8 @@ const Home = ({username, setUsername, roomname, setRoomname, createRoom, leaveRo
             </Card>
           </Col>
         </Row>
-        <Row gutter={16}>
-          <Col span={8} offset={8}>
+        <Row>
+          <Col span={24}>
               <Button type="primary" onClick={createRoom}>建立房間</Button>
               <Button type="primary" onClick={joinRoom}>加入房間</Button>
           </Col>
