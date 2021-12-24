@@ -9,10 +9,12 @@ function App() {
   const [ws,setWs] = useState(null)
   const [username, setUsername] = useState('');
   const [roomname, setRoomname] = useState('');
+  const [room, setRoom] = useState({});
+  const [showHome, setShowHome] = React.useState(true);
+  const [showGame, setShowGame] = React.useState(false);
 
   const createRoom = () => {
-    ws.emit('create', roomname);
-    ws.emit('username', username);
+    ws.emit('create', {username, roomname});
   }
 
   const leaveRoom = () => {
@@ -34,12 +36,15 @@ function App() {
   },[ws])
 
   const initWebSocket = () => {
-    ws.on('create', data => {
-      message.info(data);
+    ws.on('create', room => {
+      setRoom(room);
+      setShowHome(false);
+      setShowGame(true);
     })
     
     ws.on('leave', data => {
-      message.info(data);
+      setShowHome(true);
+      setShowGame(false);
     })
     
     ws.on('username', data => {
@@ -47,17 +52,55 @@ function App() {
     })
     
     ws.on('error', data => {
+      console.log(data)
       message.error(data);
     })
   }
-
-  const sendMessage = () => {
-      //以 emit 送訊息，並以 getMessage 為名稱送給 server 捕捉
-      ws.emit('getMessage', '只回傳給發送訊息的 client')
-  }
     
   return (
-    <div className="site-card-wrapper">
+  <div className="site-card-wrapper">
+    {showHome ? <Home 
+      username={username} 
+      setUsername={setUsername} 
+      roomname={roomname} 
+      setRoomname={setRoomname} 
+      createRoom={createRoom} 
+      leaveRoom={leaveRoom}
+    /> : null}
+    {showGame ? (
+      <Row justify="space-around" align="middle">
+        <Col span={12}>
+          <Row gutter={[24, 24]}>
+            <Col span={8} />
+            <Col span={8} />
+            <Col span={8} />
+
+            <Col span={8} />
+            <Col span={8} />
+            <Col span={8} />
+
+            <Col span={8} />
+            <Col span={8} />
+            <Col span={8} />
+          </Row>
+        </Col>
+        <Col span={12}>
+            <Input addonBefore="房間名稱: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.roomname} />
+            <Input addonBefore="房主: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.host} />
+            <Input addonBefore="訪客: "  style={{ width: 'calc(100% - 200px)' }} disabled value={room.guest} />
+            <Button type="primary" onClick={leaveRoom}>離開房間</Button>
+        </Col>
+      </Row>
+    ):null}
+    
+  </div>
+  );
+}
+
+export default App;
+
+const Home = ({username, setUsername, roomname, setRoomname, createRoom, leaveRoom}) => {
+  return  (
     <Row align="middle">
       <Col span={24}>
         <Row gutter={16}>
@@ -77,15 +120,7 @@ function App() {
               <Button type="primary" onClick={leaveRoom}>離開房間</Button>
           </Col>
         </Row>
-        <Row gutter={16}>
-          <Col span={8} offset={8}>
-              <Button type="primary" value='送出訊息' onClick={sendMessage}>送出訊息</Button>
-          </Col>
-        </Row>
       </Col>
     </Row>
-  </div>
-  );
+  )
 }
-
-export default App;
