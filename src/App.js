@@ -41,7 +41,7 @@ function App() {
 
   const useMountEffect = (fun) => useEffect(fun, [])
   useMountEffect(()=>{
-    setWs(webSocket('ws://localhost:3001'));
+    setWs(webSocket('ws://localhost:3101'));
   })
 
   useEffect(()=>{
